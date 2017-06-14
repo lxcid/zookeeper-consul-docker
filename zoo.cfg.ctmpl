@@ -16,6 +16,6 @@ clientPort={{ env "ZOO_PORT" }}
 dataLogDir={{ env "ZOO_DATA_LOG_DIR" }}
 
 # Every machine that is part of the ZooKeeper ensemble should know about every other machine in the ensemble.
-{{ range $tag, $services := service "zookeeper-2181" | byTag }}{{ if $tag | regexMatch "myid=" }}{{ range $services }}
-server.{{ $tag | regexReplaceAll ".*=" "" }}={{ .Address }}:{{ range service "zookeeper-2888" }}{{ if .Tags | contains $tag }}{{ .Port }}{{ end }}{{ end }}:{{ range service "zookeeper-3888" }}{{ if .Tags | contains $tag }}{{ .Port }}{{ end }}{{ end }}
-{{ end }}{{ end }}{{ end }}
+{{ with env "ZOO_MY_ID" | plugin "/usr/local/bin/zkGenServers.py" | parseJSON }}
+{{ range . }}server.{{ .ID }}={{ .Address }}:{{ .ServerPort }}:{{ .ElectionPort }}
+{{ end }}{{ end }}

@@ -1,0 +1,21 @@
+# The number of milliseconds of each tick
+tickTime={{ env "ZOO_TICK_TIME" }}
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit={{ env "ZOO_INIT_LIMIT" }}
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit={{ env "ZOO_SYNC_LIMIT" }}
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+dataDir={{ env "ZOO_DATA_DIR" }}
+# the port at which the clients will connect
+clientPort={{ env "ZOO_PORT" }}
+# the directory where the log is stored.
+dataLogDir={{ env "ZOO_DATA_LOG_DIR" }}
+
+# Every machine that is part of the ZooKeeper ensemble should know about every other machine in the ensemble.
+{{ range $tag, $services := service "zookeeper-2181" | byTag }}{{ if $tag | regexMatch "myid=" }}{{ range $services }}
+server.{{ $tag | regexReplaceAll ".*=" "" }}={{ .Address }}:{{ range service "zookeeper-2888" }}{{ if .Tags | contains $tag }}{{ .Port }}{{ end }}{{ end }}:{{ range service "zookeeper-3888" }}{{ if .Tags | contains $tag }}{{ .Port }}{{ end }}{{ end }}
+{{ end }}{{ end }}{{ end }}

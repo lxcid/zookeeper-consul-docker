@@ -50,7 +50,7 @@ for node in filter(has_myid, res):
     zookeepers[id] = {
         'ID': id,
         'Address': '0.0.0.0' if id == args.myid else node['ServiceAddress'],
-        'ClientPort': node['ServicePort'],
+        'ClientPort': os.getenv('ZOO_PORT', '2181') if id == args.myid else node['ServicePort'],
     }
 
 r = requests.get(f"http://{consul_http_addr}/v1/catalog/service/zookeeper-2888")
@@ -59,7 +59,7 @@ for node in filter(has_myid, res):
     id = myid(node)
     if id not in zookeepers:
         continue
-    zookeepers[id]['ServerPort'] = node['ServicePort']
+    zookeepers[id]['ServerPort'] = '2888' if id == args.myid else node['ServicePort']
 
 r = requests.get(f"http://{consul_http_addr}/v1/catalog/service/zookeeper-3888")
 res = r.json()
@@ -67,7 +67,7 @@ for node in filter(has_myid, res):
     id = myid(node)
     if id not in zookeepers:
         continue
-    zookeepers[id]['ElectionPort'] = node['ServicePort']
+    zookeepers[id]['ElectionPort'] = '3888' if id == args.myid else node['ServicePort']
 
 valid_zookeepers = list(filter(is_valid_zookeeper, zookeepers.values()))
 
